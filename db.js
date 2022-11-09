@@ -6,13 +6,11 @@ const database = "petition";
 
 const db = spicedPg(`postgres:${user}:${password}@localhost:5432/${database}`);
 
-function getPetitioners() {
-    return db
-        .query("SELECT * FROM signatures")
-        .then((result) => console.log(result.rows));
-}
+module.exports.getPetitioners = () => {
+    return db.query("SELECT * FROM signatures").then((result) => result.rows);
+};
 
-function addPetitioner({ firstName, lastName, signature }) {
+module.exports.addPetitioner = ({ firstName, lastName, signature }) => {
     return db
         .query(
             `INSERT INTO signatures ("first name", "last name", "signature")
@@ -21,6 +19,10 @@ function addPetitioner({ firstName, lastName, signature }) {
             [firstName, lastName, signature]
         )
         .then((result) => result.rows[0]);
-}
+};
 
-module.exports = { addPetitioner, getPetitioners };
+module.exports.getPetitionersCount = () => {
+    return db
+        .query("SELECT COUNT(signature) FROM signatures")
+        .then((result) => result.rows[0].count);
+};

@@ -1,12 +1,28 @@
-<h1>petition</h1>
+{{#if signed}}
+    <h1>Success</h1>
 
-<form method="POST">
-    <input type="text" name="first_name" placeholder="First Name" />
-    <input type="text" name="last_name" placeholder="Last Name" />
+{{else}}
+    <h1>petition</h1>
 
-    <p>
-        signing this petition!!!!
+    <form method="POST">
+        <input
+            type="text"
+            name="first_name"
+            placeholder="First Name"
+            required="required"
+        />
+        <input
+            type="text"
+            name="last_name"
+            placeholder="Last Name"
+            required="required"
+        />
 
-    </p>
-    <button type="submit">Submit</button>
-</form>
+        <p>
+            signing this petition!!!!
+
+        </p>
+        <button type="submit">Submit</button>
+    </form>
+
+{{/if}}
