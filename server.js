@@ -24,13 +24,17 @@ app.get("/petition", (req, res) => {
 app.post("/petition", (req, res) => {
     // check fields
     if (!req.body.first_name || !req.body.last_name) {
-        return res.send("fill all field");
+        return res.render("petition_form", { error: "Fill all fields" });
     }
     addPetitioner({
         firstName: req.body.first_name,
         lastName: req.body.last_name,
         signature: "abc",
-    }).then(res.redirect("/signed"));
+    }).then(() => {
+        //set cookies
+        res.cookie("signed", true);
+        return res.redirect("/signed");
+    });
 });
 
 app.get("/signed", (req, res) => {
