@@ -1,2 +1,6 @@
-<h1>Thank you for signing</h1>
+{{#petitioner}}
+
+    <h1>Thanks{{"first name"}} {{"last name"}} for signing</h1>
+    <img src={{signature}} />
+{{/petitioner}}
 <a href="/signers">see all {{count}} signers</a>
