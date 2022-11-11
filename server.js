@@ -11,6 +11,7 @@ const {
     addSignature,
     getSignature,
     userEmailExist,
+    addUserProfile,
 } = require("./db");
 const { hash, compare } = require("./bcrypt");
 
@@ -53,10 +54,11 @@ app.get("/", auth, (req, res) => {
     console.log("kjdkddddn");
     getSignature(req.session.user_id).then((user) => {
         if (user) {
+            console.log("here");
             getPetitionersCount().then((count) => {
                 return res.render("petition_signed", {
                     count: count,
-                    signature: user,
+                    signature: user.signature,
                 });
             });
         } else {
@@ -81,6 +83,7 @@ app.post("/login", (req, res) => {
                         req.session.user_id = user.id;
                         return res.redirect("/");
                     } else {
+                        console.log("herer2");
                         res.render("login_form", {
                             error: "Wrong password",
                         });
@@ -121,7 +124,7 @@ app.post("/signup", (req, res) => {
             .then((user) => {
                 //set session user_id
                 req.session.user_id = user.id;
-                return res.redirect("/petition");
+                return res.redirect("/profile");
             })
             .catch(() => {
                 res.render("signup_form", {
@@ -131,6 +134,26 @@ app.post("/signup", (req, res) => {
     });
 });
 
+app.get("/profile", (req, res) => {
+    return res.render("profile_form");
+});
+
+app.post("/profile", (req, res) => {
+    const { age, city, url } = req.body;
+
+    let safe = url.startsWith("http://")
+        ? url
+        : url.startsWith("https://")
+        ? url
+        : "";
+    console.log("hhebdhedvhe", req.session.user_id);
+    addUserProfile({
+        age,
+        url: safe,
+        city,
+        user_id: req.session.user_id,
+    }).then(() => res.redirect("/"));
+});
 //logout
 app.get("/logout", (req, res) => {
     req.session = null;
@@ -170,7 +193,6 @@ app.post("/petition", (req, res) => {
         signature: req.body.signatureUrl,
     }).then((result) => {
         //set cookies
-        req.session.signed = true;
         return res.redirect("/signed");
     });
 });
@@ -179,6 +201,7 @@ app.get("/signed", (req, res) => {
     let user;
     getSignature(req.session.user_id)
         .then((result) => {
+            console.log("###############", result);
             user = {
                 first_name: req.session.first_name,
                 last_name: req.session.last_name,
@@ -189,7 +212,7 @@ app.get("/signed", (req, res) => {
             getPetitionersCount().then((count) => {
                 return res.render("petition_signed", {
                     count: count,
-                    petitioner: user,
+                    petitioner: user.signature,
                 });
             })
         );

@@ -76,3 +76,14 @@ module.exports.userEmailExist = (email) => {
             return false;
         });
 };
+
+module.exports.addUserProfile = ({ age, url, city, user_id }) => {
+    return db
+        .query(
+            `INSERT INTO user_profile ("age", "url", "city", "user_id")
+    VALUES ($1, $2, $3, $4)
+    `,
+            [age, url, city, user_id]
+        )
+        .then((result) => result.rows[0]);
+};
