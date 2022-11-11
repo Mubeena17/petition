@@ -1,5 +1,4 @@
 const spicedPg = require("spiced-pg");
-
 const user = "mubeena";
 const password = "12345";
 const database = "petition";
@@ -38,10 +37,10 @@ module.exports.getUserDetail = (email, password) => {
 
 module.exports.authenticateUser = (email, password) => {
     return db
-        .query(
-            `SELECT first_name, last_name, id FROM users WHERE email=$1 AND password=$2`,
-            [email, password]
-        )
+        .query(`SELECT * FROM users WHERE email=$1 AND password=$2`, [
+            email,
+            password,
+        ])
         .then((result) => result.rows[0]);
 };
 
@@ -52,7 +51,6 @@ module.exports.getCurrentUserDetails = (user_id) => {
 };
 
 module.exports.addSignature = ({ user_id, signature }) => {
-    console.log("uswerid ::::", user_id);
     return db
         .query(
             `INSERT INTO signatures ("user_id", "signature") VALUES ($1, $2) RETURNING id`,
@@ -65,4 +63,13 @@ module.exports.getSignature = (user_id) => {
     return db
         .query(`SELECT signature FROM signatures WHERE user_id=$1 `, [user_id])
         .then((result) => result.rows[0]);
+};
+
+module.exports.userEmailExist = (email) => {
+    return db
+        .query(`SELECT email, password, id FROM users WHERE email=$1`, [email])
+        .then((result) => {
+            if (result.rows.length > 0) return result.rows[0];
+            return false;
+        });
 };

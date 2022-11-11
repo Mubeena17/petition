@@ -10,7 +10,9 @@ const {
     getCurrentUserDetails,
     addSignature,
     getSignature,
+    userEmailExist,
 } = require("./db");
+const { hash, compare } = require("./bcrypt");
 
 //handlerbar
 const handlebars = require("express-handlebars");
@@ -30,6 +32,7 @@ app.use(
 
 //check for session cookies
 function auth(req, res, next) {
+    //check if signed
     if (!req.session.user_id) {
         return res.redirect("/login");
     } else {
@@ -49,23 +52,33 @@ app.get("/login", (req, res) => {
 // login action
 app.post("/login", (req, res) => {
     const { email, password } = req.body;
-
-    // authenticateUser() returns a Promise
-    // if the authentication is successful, the promise is resolved
-    // with the logged in user (object)
-    // if authentication fails, the promise is rejected
-    authenticateUser(email, password)
+    userEmailExist(email)
         .then((user) => {
-            // store the id of the logged in user inside the session cookie
-            req.session.user_id = user.id;
-            res.redirect("/petition");
+            if (user) {
+                compare(password, user.password).then((result) => {
+                    if (result) {
+                        // store the id of the logged in user inside the session cookie
+                        req.session.user_id = user.id;
+                        return res.redirect("/petition");
+                    } else {
+                        res.render("login_form", {
+                            error: "Wrong password",
+                        });
+                    }
+                });
+            } else {
+                res.render("login_form", {
+                    error: "No user Exist!",
+                });
+            }
         })
         .catch(() => {
-            res.render("login", {
-                message: "Login failed!",
+            res.render("login_form", {
+                error: "Login failed!",
             });
         });
 });
+
 //signup route
 app.get("/signup", (req, res) => {
     return res.render("signup_form");
@@ -78,23 +91,30 @@ app.post("/signup", (req, res) => {
     if (!first_name || !last_name || !email || !password) {
         return res.render("signup_form", { error: "Fill all fields" });
     }
-    addPetitioner({
-        firstName: first_name,
-        lastName: last_name,
-        email: email,
-        password: password,
-    }).then((user) => {
-        //set session user_id
-        req.session.user_id = user.id;
-        return res.redirect("/petition");
+    hash(password).then((hashPassword) => {
+        addPetitioner({
+            firstName: first_name,
+            lastName: last_name,
+            email: email,
+            password: hashPassword,
+        })
+            .then((user) => {
+                //set session user_id
+                req.session.user_id = user.id;
+                return res.redirect("/petition");
+            })
+            .catch(() => {
+                res.render("signup_form", {
+                    error: "signup failed!",
+                });
+            });
     });
 });
 
 //logout
 app.get("/logout", (req, res) => {
     req.session = null;
-    res.clearCookie("signed");
-    return res.redirect("/petition");
+    return res.redirect("/");
 });
 
 app.get("/petition", (req, res) => {
@@ -130,8 +150,7 @@ app.post("/petition", (req, res) => {
         signature: req.body.signatureUrl,
     }).then((result) => {
         //set cookies
-        res.cookie("signed", true);
-        // not working req.session.signature = req.body.signatureUrl;
+        req.session.signed = true;
         return res.redirect("/signed");
     });
 });
