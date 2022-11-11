@@ -29,6 +29,14 @@ app.use(
         maxAge: 1000 * 60 * 60 * 24 * 14, // 24 * 14 hours
     })
 );
+app.use((req, res, next) => {
+    console.log("---------------------");
+    console.log("req.url:", req.url);
+    console.log("req.method:", req.method);
+    console.log("req.session:", req.session);
+    console.log("---------------------");
+    next();
+});
 
 //check for session cookies
 function auth(req, res, next) {
@@ -42,7 +50,19 @@ function auth(req, res, next) {
 
 //App start
 app.get("/", auth, (req, res) => {
-    return res.redirect("/petition");
+    console.log("kjdkddddn");
+    getSignature(req.session.user_id).then((user) => {
+        if (user) {
+            getPetitionersCount().then((count) => {
+                return res.render("petition_signed", {
+                    count: count,
+                    signature: user,
+                });
+            });
+        } else {
+            return res.redirect("/petition");
+        }
+    });
 });
 
 app.get("/login", (req, res) => {
@@ -59,7 +79,7 @@ app.post("/login", (req, res) => {
                     if (result) {
                         // store the id of the logged in user inside the session cookie
                         req.session.user_id = user.id;
-                        return res.redirect("/petition");
+                        return res.redirect("/");
                     } else {
                         res.render("login_form", {
                             error: "Wrong password",

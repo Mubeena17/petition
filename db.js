@@ -62,7 +62,10 @@ module.exports.addSignature = ({ user_id, signature }) => {
 module.exports.getSignature = (user_id) => {
     return db
         .query(`SELECT signature FROM signatures WHERE user_id=$1 `, [user_id])
-        .then((result) => result.rows[0]);
+        .then((result) => {
+            if (result.rows.length > 0) return result.rows[0];
+            return false;
+        });
 };
 
 module.exports.userEmailExist = (email) => {
