@@ -12,6 +12,7 @@ const {
     getSignature,
     userEmailExist,
     addUserProfile,
+    listAllPetitioner,
 } = require("./db");
 const { hash, compare } = require("./bcrypt");
 
@@ -30,14 +31,14 @@ app.use(
         maxAge: 1000 * 60 * 60 * 24 * 14, // 24 * 14 hours
     })
 );
-app.use((req, res, next) => {
-    console.log("---------------------");
-    console.log("req.url:", req.url);
-    console.log("req.method:", req.method);
-    console.log("req.session:", req.session);
-    console.log("---------------------");
-    next();
-});
+// app.use((req, res, next) => {
+//     console.log("---------------------");
+//     console.log("req.url:", req.url);
+//     console.log("req.method:", req.method);
+//     console.log("req.session:", req.session);
+//     console.log("---------------------");
+//     next();
+// });
 
 //check for session cookies
 function auth(req, res, next) {
@@ -147,8 +148,9 @@ app.post("/profile", (req, res) => {
         ? url
         : "";
     console.log("hhebdhedvhe", req.session.user_id);
+    let realage = age ? age : null;
     addUserProfile({
-        age,
+        age: realage,
         url: safe,
         city,
         user_id: req.session.user_id,
@@ -201,7 +203,6 @@ app.get("/signed", (req, res) => {
     let user;
     getSignature(req.session.user_id)
         .then((result) => {
-            console.log("###############", result);
             user = {
                 first_name: req.session.first_name,
                 last_name: req.session.last_name,
@@ -212,16 +213,21 @@ app.get("/signed", (req, res) => {
             getPetitionersCount().then((count) => {
                 return res.render("petition_signed", {
                     count: count,
-                    petitioner: user.signature,
+                    signature: user.signature,
                 });
             })
         );
 });
 
-app.get("/signers", (req, res) => {
-    getPetitioners().then((signers) =>
-        res.render("petition_signers", { signers: signers })
-    );
+app.get("/petition/signers", (req, res) => {
+    // getPetitioners().then((signers) =>
+    //     res.render("petition_signers", { signers: signers })
+    // );
+
+    listAllPetitioner().then((result) => {
+        console.log("#####", result);
+        return res.render("petition_signers", { user: result });
+    });
 });
 
 app.use("/", express.static(path.join(__dirname, "public")));

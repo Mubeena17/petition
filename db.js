@@ -87,3 +87,18 @@ module.exports.addUserProfile = ({ age, url, city, user_id }) => {
         )
         .then((result) => result.rows[0]);
 };
+
+module.exports.listAllPetitioner = () => {
+    return db
+        .query(
+            `SELECT users.first_name AS first_name, users.last_name AS last_name , user_profile.age AS age,
+    user_profile.city AS city, user_profile.url AS url
+FROM users
+JOIN user_profile
+ON users.id = user_profile.user_id`
+        )
+        .then((result) => {
+            console.log(result.rows[0]);
+            return result.rows;
+        });
+};
