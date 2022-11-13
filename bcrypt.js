@@ -5,10 +5,10 @@ const hash = promisify(bcrypt.hash);
 const compare = promisify(bcrypt.compare);
 const genSalt = promisify(bcrypt.genSalt);
 
-exports.hash = (password) => {
+module.exports.hash = (password) => {
     return genSalt().then((salt) => {
         return hash(password, salt);
     });
 };
 
-exports.compare = compare;
+module.exports.compare = compare;

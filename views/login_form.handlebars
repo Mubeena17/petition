@@ -1,11 +1,33 @@
-<h1>Login</h1>
+<div class="form_container">
+    <form name="login" method="POST">
+        <div class="form_title">
+            <text>SIGN IN</text>
+            <span class="form_bar"></span>
+        </div>
+        <div class="cont_text_inputs">
+            <input
+                class="input_field"
+                type="email"
+                name="email"
+                placeholder="EMAIL"
+            />
+            <input
+                type="password"
+                class="input_field"
+                placeholder="PASSWORD"
+                name="password"
+            />
+            <button
+                class="form_btn"
+                type="submit"
+                value="submit"
+                name="submit"
+            >SIGN IN</button>
 
-<form name="login" method="POST">
-    <input type="email" name="email" placeholder="Email" />
-    <input type="password" name="password" placeholder="Password" />
-    <text style="color:red">{{error}}</text>
-    <br />
-    <button type="submit" value="submit" name="submit">log in</button>
-</form>
+        </div>
+        <text class="txt_error" style="color:red">{{error}}</text>
+    </form>
+</div>
 
-<p>Register<a href="/signup">signUp</a></p>
+<text class="cont_text">Not a member yet!
+    <a class="link_form" href="/signup">SIGN UP</a></text>

@@ -97,8 +97,18 @@ FROM users
 JOIN user_profile
 ON users.id = user_profile.user_id`
         )
-        .then((result) => {
-            console.log(result.rows[0]);
-            return result.rows;
-        });
+        .then((result) => result.rows);
+};
+
+module.exports.getPetitionerByCity = (city) => {
+    return db
+        .query(
+            `SELECT users.first_name AS first_name, users.last_name AS last_name , user_profile.age AS age,
+    user_profile.url AS url
+FROM users
+JOIN user_profile
+ON users.id = user_profile.user_id WHERE LOWER(user_profile.city)=LOWER($1)`,
+            [city]
+        )
+        .then((result) => result.rows);
 };

@@ -1,22 +1,25 @@
-<h1>petition | sign this petition!!!!</h1>
-<form method="POST">
-    <h1>SIGN HERE{{user.firstName}} {{user.lastName}}</h1>
-    <canvas
-        id="canvas_signature"
-        width="400"
-        height="100"
-        style="border: 2px dotted;position: relative;"
-    >
-    </canvas>
-
-    <input type="hidden"
-        name="signatureUrl"
-        id="canvasimg"
-        style="position: absolute; top: 10%; left: 52%"
-        
-    ></text>
-    <br />
-
-    <button id="clear_canvas" >Clear</button> 
-    <button type="submit" value="submit" name="submit">Submit</button>
-</form>
+<div class="form_sign_container">
+    <form name="signature" method="POST">
+        <div class="form_title">
+            <text>SIGN HERE</text>
+            <span class="form_bar"></span>
+        </div>
+        <canvas id="canvas_signature" width="400" height="100">
+        </canvas>
+        <input
+            type="hidden"
+            name="signatureUrl"
+            id="canvasimg"
+            style="position: absolute; top: 10%; left: 52%"
+        />
+        <br />
+        <div class="cont_btn">
+            <button class="form_btn" id="clear_canvas">Clear</button>
+            <button
+                class="form_btn"
+                type="submit"
+                value="submit"
+                name="submit"
+            >Submit</button></div>
+    </form>
+</div>

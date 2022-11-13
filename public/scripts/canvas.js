@@ -57,10 +57,10 @@ function draw() {
 }
 
 function erase(e) {
-    console.log("erase");
     e.preventDefault();
     ctx.clearRect(0, 0, w, h);
     document.getElementById("canvasimg").style.display = "none";
+    document.getElementById("canvasimg").value = "";
 }
 
 function save() {

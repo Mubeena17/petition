@@ -13,6 +13,7 @@ const {
     userEmailExist,
     addUserProfile,
     listAllPetitioner,
+    getPetitionerByCity,
 } = require("./db");
 const { hash, compare } = require("./bcrypt");
 
@@ -20,6 +21,8 @@ const { hash, compare } = require("./bcrypt");
 const handlebars = require("express-handlebars");
 app.engine("handlebars", handlebars.engine());
 app.set("view engine", "handlebars");
+
+let canvasScript = [{ script: "/scripts/canvas.js" }];
 
 // install middleware to help us read POST body (form data) easily
 app.use(express.urlencoded({ extended: false }));
@@ -31,16 +34,8 @@ app.use(
         maxAge: 1000 * 60 * 60 * 24 * 14, // 24 * 14 hours
     })
 );
-// app.use((req, res, next) => {
-//     console.log("---------------------");
-//     console.log("req.url:", req.url);
-//     console.log("req.method:", req.method);
-//     console.log("req.session:", req.session);
-//     console.log("---------------------");
-//     next();
-// });
 
-//check for session cookies
+//check for session cookies (auth)
 function auth(req, res, next) {
     //check if signed
     if (!req.session.user_id) {
@@ -52,16 +47,9 @@ function auth(req, res, next) {
 
 //App start
 app.get("/", auth, (req, res) => {
-    console.log("kjdkddddn");
     getSignature(req.session.user_id).then((user) => {
         if (user) {
-            console.log("here");
-            getPetitionersCount().then((count) => {
-                return res.render("petition_signed", {
-                    count: count,
-                    signature: user.signature,
-                });
-            });
+            return res.redirect("/signed");
         } else {
             return res.redirect("/petition");
         }
@@ -112,7 +100,7 @@ app.get("/signup", (req, res) => {
 app.post("/signup", (req, res) => {
     // check fields
     const { first_name, last_name, email, password } = req.body;
-    if (!first_name || !last_name || !email || !password) {
+    if (!(first_name && last_name && email && password)) {
         return res.render("signup_form", { error: "Fill all fields" });
     }
     hash(password).then((hashPassword) => {
@@ -147,7 +135,6 @@ app.post("/profile", (req, res) => {
         : url.startsWith("https://")
         ? url
         : "";
-    console.log("hhebdhedvhe", req.session.user_id);
     let realage = age ? age : null;
     addUserProfile({
         age: realage,
@@ -177,18 +164,16 @@ app.get("/petition", (req, res) => {
             };
             return currentUser;
         })
-        .then((user) => res.render("petition_form", { user }));
+        .then((user) =>
+            res.render("petition_form", { user, scripts: canvasScript })
+        );
 });
 
 app.post("/petition", (req, res) => {
-    const submit = req.body.submit;
-    //check if submit button clicked
-
     // check fields
     if (!req.body.signatureUrl) {
-        return res.render("petition_form", { error: "Fill all fields" });
+        return res.render("petition_form", { error: "Sign it" });
     }
-
     addSignature({
         user_id: req.session.user_id,
         // signature: "req.body.signatureUrl",
@@ -203,6 +188,7 @@ app.get("/signed", (req, res) => {
     let user;
     getSignature(req.session.user_id)
         .then((result) => {
+            console.log("bhjbh", req.session.user_id);
             user = {
                 first_name: req.session.first_name,
                 last_name: req.session.last_name,
@@ -216,7 +202,10 @@ app.get("/signed", (req, res) => {
                     signature: user.signature,
                 });
             })
-        );
+        )
+        .catch((error) => {
+            return res.redirect("/");
+        });
 });
 
 app.get("/petition/signers", (req, res) => {
@@ -225,8 +214,14 @@ app.get("/petition/signers", (req, res) => {
     // );
 
     listAllPetitioner().then((result) => {
-        console.log("#####", result);
         return res.render("petition_signers", { user: result });
+    });
+});
+
+app.get("/petition/signers/:city", (req, res) => {
+    const city = req.params.city;
+    getPetitionerByCity(city).then((result) => {
+        return res.render("city_signers", { user: result, city: city });
     });
 });
 
