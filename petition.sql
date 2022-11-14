@@ -23,6 +23,6 @@ CREATE TABLE user_profile(
     age INTEGER,
     url VARCHAR(255),
     city VARCHAR(255),
-    user_id INT NOT NULL REFERENCES users(id) 
-    
+    user_id INT NOT NULL REFERENCES users(id),
+    CONSTRAINT user_id_constrain UNIQUE (user_id)
 );

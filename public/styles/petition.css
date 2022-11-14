@@ -5,6 +5,11 @@
     height: 100%;
 } */
 
+.btn_delete {
+    all: unset;
+    cursor: pointer;
+}
+
 body {
     background: linear-gradient(120grad, #e1a16d, #d26671);
     width: 100%;
@@ -191,4 +196,5 @@ body {
     letter-spacing: 2;
     font-family: Helvetica;
     font-weight: bold;
+    text-decoration: unset;
 }

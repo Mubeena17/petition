@@ -14,6 +14,8 @@ const {
     addUserProfile,
     listAllPetitioner,
     getPetitionerByCity,
+    getProfileValue,
+    editProfile,
 } = require("./db");
 const { hash, compare } = require("./bcrypt");
 
@@ -44,6 +46,27 @@ function auth(req, res, next) {
         next();
     }
 }
+
+// app.use((req, res, next) => {
+//     const urls = [
+//         "/profile",
+//         "/profile/edit",
+//         "/profile/delete",
+//         "/petition",
+//         "/signed",
+//         "/signers",
+//         "/logout",
+//     ];
+//     if (urls.includes(req.url) && !req.session.userId) {
+//         return res.redirect("/signup");
+//     } else if (
+//         (req.url === "/signup" || req.url === "/login") &&
+//         req.session.userId
+//     ) {
+//         return res.redirect("/petition");
+//     }
+//     next();
+// });
 
 //App start
 app.get("/", auth, (req, res) => {
@@ -126,15 +149,18 @@ app.post("/signup", (req, res) => {
 app.get("/profile", (req, res) => {
     return res.render("profile_form");
 });
-
-app.post("/profile", (req, res) => {
-    const { age, city, url } = req.body;
-
-    let safe = url.startsWith("http://")
+let checkUrl = (url) => {
+    return url.startsWith("http://")
         ? url
         : url.startsWith("https://")
         ? url
         : "";
+};
+
+app.post("/profile", (req, res) => {
+    const { age, city, url } = req.body;
+
+    let safe = checkUrl(url);
     let realage = age ? age : null;
     addUserProfile({
         age: realage,
@@ -225,13 +251,32 @@ app.get("/petition/signers/:city", (req, res) => {
     });
 });
 
+app.get("/profile/edit", (req, res) => {
+    //console.log(req.session.user_id);
+
+    getProfileValue(req.session.user_id).then((user) => {
+        return res.render("profile_edit", { user });
+    });
+});
+
+app.post("/profile/edit", (req, res) => {
+    let user_id = req.session.user_id;
+    let { first_name, last_name, email, password, city, url, age } = req.body;
+
+    if (password) {
+        //updatepass
+        return;
+    } else {
+        safe = checkUrl(url);
+        let realage = age ? age : null;
+        editProfile({ user_id, age: realage, city, url: safe })
+            .then(() => res.redirect("/"))
+            .catch((err) => console.log(err));
+    }
+});
+
 app.use("/", express.static(path.join(__dirname, "public")));
 
 app.listen(8000, () => {
     console.log("PORT 8000");
 });
-
-//LOGOUT
-// path /logout
-// req.session = null
-//redirect t0 /

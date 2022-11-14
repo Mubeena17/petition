@@ -112,3 +112,51 @@ ON users.id = user_profile.user_id WHERE LOWER(user_profile.city)=LOWER($1)`,
         )
         .then((result) => result.rows);
 };
+
+module.exports.getProfileValue = (user_id) => {
+    return db
+        .query(
+            `SELECT users.first_name AS first_name, users.last_name AS last_name, users.email AS email, users.password AS password,
+        user_profile.city as city, user_profile.age AS age, user_profile.url AS url
+        FROM users
+        JOIN user_profile
+        ON user_profile.user_id = users.id
+        WHERE user_id = $1`,
+            [user_id]
+        )
+        .then((result) => result.rows[0]);
+};
+
+module.exports.editProfile = ({ user_id, age, city, url }) => {
+    return db
+        .query(
+            `INSERT INTO user_profile (user_id, age, city, url)
+    VALUES ($1, $2, $3, $4)
+    ON CONFLICT (user_id)
+    DO UPDATE SET age=$2, city=$3, url=$4
+        `,
+            [user_id, age, city, url]
+        )
+        .catch((err) => console.log(err));
+};
+module.exports.editProfilePass = () => {};
+
+module.exports.deleteSignature = (userId) => {
+    return db.query(
+        `
+            DELETE FROM signatures
+            WHERE user_id=$1
+        `,
+        [userId]
+    );
+};
+
+module.exports.deleteProfile = (userId) => {
+    return db.query(
+        `
+            DELETE FROM users
+            WHERE id=$1
+        `,
+        [userId]
+    );
+};

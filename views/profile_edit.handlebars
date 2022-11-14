@@ -1,0 +1,69 @@
+{{#user}}
+    <div class="form_container">
+        <form name="Profile edit" method="POST">
+            <div class="form_title">
+                <text>Update Profile</text>
+                <span class="form_bar"></span>
+            </div>
+            <div class="cont_text_inputs">
+                <input
+                    class="input_field"
+                    type="text"
+                    name="first_name"
+                    value={{first_name}}
+                    placeholder="FIRST NAME"
+                />
+                <input
+                    class="input_field"
+                    type="text"
+                    name="last_name"
+                    value={{last_name}}
+                    placeholder="LAST NAME"
+                />
+                <input
+                    class="input_field"
+                    type="email"
+                    name="email"
+                    placeholder="EMAIL"
+                    value={{email}}
+                />
+
+                <input
+                    type="password"
+                    class="input_field"
+                    placeholder="PASSWORD"
+                    name="password"
+                />
+                <input
+                    type="text"
+                    class="input_field"
+                    placeholder="AGE"
+                    name="age"
+                    value={{age}}
+                />
+                <input
+                    type="text"
+                    class="input_field"
+                    placeholder="City"
+                    name="city"
+                    value={{city}}
+                />
+                <input
+                    type="text"
+                    class="input_field"
+                    placeholder="Homepage"
+                    name="url"
+                    value={{url}}
+                />
+
+                <button
+                    class="form_btn"
+                    type="submit"
+                    value="submit"
+                    name="submit"
+                >Update</button>
+
+            </div>
+        </form>
+    </div>
+{{/user}}
