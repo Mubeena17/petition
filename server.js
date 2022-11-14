@@ -16,6 +16,9 @@ const {
     getPetitionerByCity,
     getProfileValue,
     editProfile,
+    deleteSignature,
+    updateUser,
+    updateUserWithPass,
 } = require("./db");
 const { hash, compare } = require("./bcrypt");
 
@@ -46,27 +49,6 @@ function auth(req, res, next) {
         next();
     }
 }
-
-// app.use((req, res, next) => {
-//     const urls = [
-//         "/profile",
-//         "/profile/edit",
-//         "/profile/delete",
-//         "/petition",
-//         "/signed",
-//         "/signers",
-//         "/logout",
-//     ];
-//     if (urls.includes(req.url) && !req.session.userId) {
-//         return res.redirect("/signup");
-//     } else if (
-//         (req.url === "/signup" || req.url === "/login") &&
-//         req.session.userId
-//     ) {
-//         return res.redirect("/petition");
-//     }
-//     next();
-// });
 
 //App start
 app.get("/", auth, (req, res) => {
@@ -149,6 +131,8 @@ app.post("/signup", (req, res) => {
 app.get("/profile", (req, res) => {
     return res.render("profile_form");
 });
+
+//check url
 let checkUrl = (url) => {
     return url.startsWith("http://")
         ? url
@@ -158,16 +142,25 @@ let checkUrl = (url) => {
 };
 
 app.post("/profile", (req, res) => {
-    const { age, city, url } = req.body;
+    if (req.body.submit == "skip") {
+        editProfile({
+            user_id: req.session.user_id,
+            age: null,
+            city: "",
+            url: "",
+        }).then(() => res.redirect("/"));
+    } else {
+        const { age, city, url } = req.body;
 
-    let safe = checkUrl(url);
-    let realage = age ? age : null;
-    addUserProfile({
-        age: realage,
-        url: safe,
-        city,
-        user_id: req.session.user_id,
-    }).then(() => res.redirect("/"));
+        let safe = checkUrl(url);
+        let realage = age ? age : null;
+        editProfile({
+            user_id: req.session.user_id,
+            age: realage,
+            city,
+            url: safe,
+        }).then(() => res.redirect("/"));
+    }
 });
 //logout
 app.get("/logout", (req, res) => {
@@ -214,21 +207,21 @@ app.get("/signed", (req, res) => {
     let user;
     getSignature(req.session.user_id)
         .then((result) => {
-            console.log("bhjbh", req.session.user_id);
-            user = {
-                first_name: req.session.first_name,
-                last_name: req.session.last_name,
-                signature: result.signature,
-            };
-        })
-        .then(
-            getPetitionersCount().then((count) => {
-                return res.render("petition_signed", {
-                    count: count,
-                    signature: user.signature,
+            if (result) {
+                user = {
+                    first_name: req.session.first_name,
+                    last_name: req.session.last_name,
+                    signature: result.signature,
+                };
+
+                getPetitionersCount().then((count) => {
+                    return res.render("petition_signed", {
+                        count: count,
+                        signature: user.signature,
+                    });
                 });
-            })
-        )
+            }
+        })
         .catch((error) => {
             return res.redirect("/");
         });
@@ -252,8 +245,7 @@ app.get("/petition/signers/:city", (req, res) => {
 });
 
 app.get("/profile/edit", (req, res) => {
-    //console.log(req.session.user_id);
-
+    console.log(req.session.user_id);
     getProfileValue(req.session.user_id).then((user) => {
         return res.render("profile_edit", { user });
     });
@@ -264,15 +256,37 @@ app.post("/profile/edit", (req, res) => {
     let { first_name, last_name, email, password, city, url, age } = req.body;
 
     if (password) {
-        //updatepass
-        return;
-    } else {
-        safe = checkUrl(url);
-        let realage = age ? age : null;
-        editProfile({ user_id, age: realage, city, url: safe })
-            .then(() => res.redirect("/"))
+        hash(password)
+            .then((hashPassword) => {
+                updateUserWithPass({
+                    user_id,
+                    first_name,
+                    last_name,
+                    email,
+                    password: hashPassword,
+                });
+            })
             .catch((err) => console.log(err));
+    } else {
+        updateUser({
+            user_id,
+            first_name,
+            last_name,
+            email,
+        }).catch((err) => console.log(err));
     }
+    safe = checkUrl(url);
+    let realage = age ? age : null;
+    editProfile({ user_id, age: realage, city, url: safe })
+        .then(() => res.redirect("/"))
+        .catch((err) => console.log(err));
+});
+
+app.post("/signature/delete", (req, res) => {
+    let user_id = req.session.user_id;
+    deleteSignature(user_id)
+        .then((result) => res.redirect("/"))
+        .catch((err) => console.log(err));
 });
 
 app.use("/", express.static(path.join(__dirname, "public")));

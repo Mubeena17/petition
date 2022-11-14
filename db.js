@@ -1,3 +1,4 @@
+const { query } = require("express");
 const spicedPg = require("spiced-pg");
 const user = "mubeena";
 const password = "12345";
@@ -139,7 +140,29 @@ module.exports.editProfile = ({ user_id, age, city, url }) => {
         )
         .catch((err) => console.log(err));
 };
-module.exports.editProfilePass = () => {};
+module.exports.updateUser = ({ user_id, first_name, last_name, email }) => {
+    return db.query(
+        `UPDATE users
+                    SET first_name=$2, last_name=$3, email=$4
+                    WHERE id=$1`,
+        [user_id, first_name, last_name, email]
+    );
+};
+
+module.exports.updateUserWithPass = ({
+    user_id,
+    first_name,
+    last_name,
+    email,
+    password,
+}) => {
+    return db.query(
+        `UPDATE users
+                    SET first_name=$2, last_name=$3, email=$4, password=$5
+                    WHERE id=$1`,
+        [user_id, first_name, last_name, email, password]
+    );
+};
 
 module.exports.deleteSignature = (userId) => {
     return db.query(
