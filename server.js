@@ -50,6 +50,27 @@ function auth(req, res, next) {
     }
 }
 
+app.use((req, res, next) => {
+    const urls = [
+        "/profile",
+        "/profile/edit",
+        "/profile/delete",
+        "/petition",
+        "/signed",
+        "/petition/signers/:city",
+        "/petition/signers",
+        "/logout",
+    ];
+    if (urls.includes(req.url) && !req.session.user_id) {
+        return res.redirect("/signup");
+    } else if (
+        (req.url === "/signup" || req.url === "/login") &&
+        req.session.user_id
+    ) {
+        return res.redirect("/petition");
+    }
+    next();
+});
 //App start
 app.get("/", auth, (req, res) => {
     getSignature(req.session.user_id).then((user) => {
@@ -60,7 +81,6 @@ app.get("/", auth, (req, res) => {
         }
     });
 });
-
 app.get("/login", (req, res) => {
     return res.render("login_form");
 });
