@@ -1,10 +1,10 @@
 const { query } = require("express");
 const spicedPg = require("spiced-pg");
-const user = "mubeena";
-const password = "12345";
-const database = "petition";
 
-const db = spicedPg(`postgres:${user}:${password}@localhost:5432/${database}`);
+require("dotenv").config();
+const { USER, PASS, DATABASE } = process.env;
+
+const db = spicedPg(`postgres:${USER}:${PASS}@localhost:5432/${DATABASE}`);
 
 module.exports.getPetitioners = () => {
     return db.query("SELECT * FROM users").then((result) => result.rows);
