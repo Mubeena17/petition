@@ -117,7 +117,10 @@ router.get("/petition/signers/:city", (req, res) => {
 
 /******************** P R O F I L E  ************************* */
 router.get("/profile", (req, res) => {
-    return res.render("profile_form");
+    if (req.session.currentUrl === "/signup") {
+        req.session.currentUrl = null;
+        return res.render("profile_form");
+    } else res.redirect("/");
 });
 
 router.post("/profile", (req, res) => {

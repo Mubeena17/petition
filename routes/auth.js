@@ -82,6 +82,7 @@ router.post("/signup", (req, res, next) => {
                         .then((user) => {
                             //set session user_id
                             req.session.user_id = user.id;
+                            req.session.currentUrl = req.url;
                             return res.redirect("/profile");
                         })
                         .catch(() => {

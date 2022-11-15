@@ -5,7 +5,7 @@ const petitionRouter = require("./routes/petition");
 const cookieSession = require("cookie-session");
 const path = require("path");
 require("dotenv").config();
-const { PORT } = process.env;
+const { PORT, SECRET } = process.env;
 
 //handlerbar
 const handlebars = require("express-handlebars");
@@ -18,9 +18,9 @@ app.use(express.urlencoded({ extended: false }));
 app.use(
     // used for created a Session object (req.session) and persist this object
     cookieSession({
-        secret: `I'm always hungry.`,
+        secret: SECRET,
         maxAge: 1000 * 60 * 60 * 24 * 14,
-        sameSite: false,
+        sameSite: true,
     })
 );
 
