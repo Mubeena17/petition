@@ -6,12 +6,15 @@ const cookieSession = require("cookie-session");
 const path = require("path");
 require("dotenv").config();
 const { PORT, SECRET } = process.env;
+const helmet = require("helmet");
 
 //handlerbar
 const handlebars = require("express-handlebars");
 app.engine("handlebars", handlebars.engine());
 app.set("view engine", "handlebars");
 
+//helmet
+app.use(helmet());
 // install middleware to help us read POST body (form data) easily
 app.use(express.urlencoded({ extended: false }));
 

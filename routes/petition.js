@@ -24,23 +24,7 @@ const { checkUrl } = require("../public/utils/checkurl");
 let canvasScript = [{ script: "/scripts/canvas.js" }];
 
 let userdetails;
-//SIGNATURE MIDDLEWARE
-// router.use("/petition", (req, res, next) => {
-//     console.log("url: ", req.url);
-//     console.log("baseurl: ", req.baseUrl);
-//     console.log("original url: ", req.originalUrl);
 
-//     getSignature(req.session.user_id).then((user) => {
-//         if (user) {
-//             userdetails = {
-//                 signature: user.signature,
-//             };
-//             return res.redirect("/signed");
-//         }
-//     });
-
-//     next();
-// });
 router.get("/", (req, res) => {
     return res.redirect("/petition");
 });
@@ -117,7 +101,7 @@ router.get("/signed", (req, res) => {
         })
         .catch((error) => {
             //need to look routes
-            return console.log(error);
+            return res.redirect("/");
         });
 });
 
@@ -134,9 +118,11 @@ router.get("/petition/signers", (req, res) => {
 router.get("/petition/signers/:city", (req, res) => {
     if (req.session.user_id) {
         const city = req.params.city;
-        getPetitionerByCity(city).then((result) => {
-            return res.render("city_signers", { user: result, city: city });
-        });
+        getPetitionerByCity(city)
+            .then((result) => {
+                return res.render("city_signers", { user: result, city: city });
+            })
+            .catch((err) => res.redirect("/"));
     } else res.redirect("/");
 });
 
@@ -179,9 +165,11 @@ router.post(
 /********************* E D I T F O R M ************************** */
 router.get("/profile/edit", (req, res) => {
     console.log(req.session.user_id);
-    getProfileValue(req.session.user_id).then((user) => {
-        return res.render("profile_edit", { user });
-    });
+    getProfileValue(req.session.user_id)
+        .then((user) => {
+            return res.render("profile_edit", { user });
+        })
+        .catch((err) => res.redirect("/"));
 });
 
 router.post("/profile/edit", (req, res) => {
