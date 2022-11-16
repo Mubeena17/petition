@@ -152,12 +152,14 @@ body {
 }
 
 .description {
+    text-align: center;
     font-family: Helvetica;
     font-size: larger;
     max-width: 1000px;
     min-width: 400px;
-    line-height: 45px;
+    line-height: 37px;
     color: antiquewhite;
+    margin-bottom: 46px;
 }
 
 .cont_dscrp {
