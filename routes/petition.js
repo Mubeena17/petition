@@ -59,7 +59,7 @@ router.get("/petition", (req, res) => {
                     );
             }
         });
-    } else res.redirect("/login");
+    } else res.redirect("/signup");
 });
 
 router.post("/petition", body("signatureUrl").isDataURI(), (req, res) => {
@@ -136,8 +136,19 @@ router.get("/profile", (req, res) => {
 
 router.post(
     "/profile",
-
+    body("age")
+        .isInt()
+        .withMessage("age must be integer")
+        .optional({ nullable: true, checkFalsy: true }),
     (req, res) => {
+        const errors = validationResult(req);
+
+        if (!errors.isEmpty()) {
+            const msg = errors.array()[0].msg;
+            return res.render("profile_form", {
+                error: msg,
+            });
+        }
         if (req.body.submit == "skip") {
             editProfile({
                 user_id: req.session.user_id,
@@ -172,36 +183,55 @@ router.get("/profile/edit", (req, res) => {
         .catch((err) => res.redirect("/"));
 });
 
-router.post("/profile/edit", (req, res) => {
-    let user_id = req.session.user_id;
-    let { first_name, last_name, email, password, city, url, age } = req.body;
+router.post(
+    "/profile/edit",
+    body("age")
+        .isInt()
+        .withMessage("age must be integer")
+        .optional({ nullable: true, checkFalsy: true }),
+    (req, res) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            const msg = errors.array()[0].msg;
+            console.log(msg);
+            getProfileValue(req.session.user_id)
+                .then((user) => {
+                    return res.render("profile_edit", { user, error: msg });
+                })
+                .catch((err) => res.redirect("/"));
+        } else {
+            let user_id = req.session.user_id;
+            let { first_name, last_name, email, password, city, url, age } =
+                req.body;
 
-    if (password) {
-        hash(password)
-            .then((hashPassword) => {
-                updateUserWithPass({
+            if (password) {
+                hash(password)
+                    .then((hashPassword) => {
+                        updateUserWithPass({
+                            user_id,
+                            first_name,
+                            last_name,
+                            email,
+                            password: hashPassword,
+                        });
+                    })
+                    .catch((err) => console.log(err));
+            } else {
+                updateUser({
                     user_id,
                     first_name,
                     last_name,
                     email,
-                    password: hashPassword,
-                });
-            })
-            .catch((err) => console.log(err));
-    } else {
-        updateUser({
-            user_id,
-            first_name,
-            last_name,
-            email,
-        }).catch((err) => console.log(err));
+                }).catch((err) => console.log(err));
+            }
+            safe = checkUrl(url);
+            let realage = age ? age : null;
+            editProfile({ user_id, age: realage, city, url: safe })
+                .then(() => res.redirect("/"))
+                .catch((err) => console.log(err));
+        }
     }
-    safe = checkUrl(url);
-    let realage = age ? age : null;
-    editProfile({ user_id, age: realage, city, url: safe })
-        .then(() => res.redirect("/"))
-        .catch((err) => console.log(err));
-});
+);
 
 /********************* D E L E T E  S I G N ************************** */
 router.post("/signature/delete", (req, res) => {

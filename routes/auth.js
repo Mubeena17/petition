@@ -16,7 +16,7 @@ router.use((req, res, next) => {
         "/profile/edit",
     ];
     if (urls.includes(req.url) && !req.session.user_id) {
-        return res.redirect("/login");
+        return res.redirect("/signup");
     } else if (
         (req.url === "/signup" || req.url === "/login") &&
         req.session.user_id
@@ -27,6 +27,10 @@ router.use((req, res, next) => {
 });
 
 //******* L O G I N ********/
+
+router.get("/signup", (req, res) => {
+    return res.render("signup_form");
+});
 
 router.get("/login", (req, res) => {
     return res.render("login_form");
@@ -74,22 +78,22 @@ router.post(
 );
 
 //****************** S I N G U P *************************/
-router.get("/signup", (req, res) => {
-    return res.render("signup_form");
-});
 
 router.post(
     "/signup",
     body("email").isEmail().escape().normalizeEmail(),
-    body("password").isLength({ min: 3 }),
+    body("password")
+        .isLength({ min: 3 })
+        .withMessage("Password must be at least 3 chars long"),
     body("first_name").not().isEmpty().trim().escape(),
     body("last_name").not().isEmpty().trim().escape(),
     (req, res, next) => {
         const errors = validationResult(req);
+
         if (!errors.isEmpty()) {
-            console.log("here");
+            const msg = errors.array()[0].msg;
             return res.render("signup_form", {
-                error: "Signup failed!!!",
+                error: msg,
             });
         }
         // check fields
