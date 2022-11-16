@@ -164,22 +164,22 @@ module.exports.updateUserWithPass = ({
     );
 };
 
-module.exports.deleteSignature = (userId) => {
+module.exports.deleteSignature = (user_id) => {
     return db.query(
         `
             DELETE FROM signatures
             WHERE user_id=$1
         `,
-        [userId]
+        [user_id]
     );
 };
 
-module.exports.deleteProfile = (userId) => {
-    return db.query(
-        `
-            DELETE FROM users
-            WHERE id=$1
-        `,
-        [userId]
-    );
+module.exports.delete1 = (user_id) => {
+    return db.query(`DELETE FROM signatures WHERE user_id = $1`, [user_id]);
+};
+module.exports.delete2 = (user_id) => {
+    return db.query(`DELETE FROM user_profile WHERE user_id = $1`, [user_id]);
+};
+module.exports.delete3 = (user_id) => {
+    return db.query(`DELETE FROM users WHERE id = $1`, [user_id]);
 };

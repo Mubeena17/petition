@@ -12,8 +12,12 @@ const {
     updateUser,
     editProfile,
     deleteSignature,
+    delete1,
+    delete2,
+    delete3,
 } = require("../db");
 
+const { body, validationResult } = require("express-validator");
 const { hash, compare } = require("../bcrypt");
 const { checkUrl } = require("../public/utils/checkurl");
 
@@ -43,46 +47,63 @@ router.get("/", (req, res) => {
 
 /****************** P E T I T I O N *********************/
 router.get("/petition", (req, res) => {
-    getSignature(req.session.user_id).then((user) => {
-        if (user) {
-            userdetails = {
-                signature: user.signature,
-            };
-            return res.redirect("/signed");
-        } else {
-            user_id = req.session.user_id;
-            let currentUser;
+    if (req.session.user_id) {
+        getSignature(req.session.user_id).then((user) => {
+            if (user) {
+                userdetails = {
+                    signature: user.signature,
+                };
+                return res.redirect("/signed");
+            } else {
+                user_id = req.session.user_id;
+                let currentUser;
 
-            getCurrentUserDetails(user_id)
-                .then((user) => {
-                    currentUser = {
-                        firstName: user.first_name,
-                        lastName: user.last_name,
-                        user_id: user_id,
-                    };
-                    return currentUser;
-                })
-                .then((user) =>
-                    res.render("petition_form", { user, scripts: canvasScript })
-                );
-        }
-    });
+                getCurrentUserDetails(user_id)
+                    .then((user) => {
+                        currentUser = {
+                            firstName: user.first_name,
+                            lastName: user.last_name,
+                            user_id: user_id,
+                        };
+                        return currentUser;
+                    })
+                    .then((user) =>
+                        res.render("petition_form", {
+                            user,
+                            scripts: canvasScript,
+                        })
+                    );
+            }
+        });
+    } else res.redirect("/login");
 });
 
-router.post("/petition", (req, res) => {
+router.post("/petition", body("signatureUrl").isDataURI(), (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.render("petition_form", {
+            error: " no !!!",
+            scripts: canvasScript,
+        });
+    }
     // check fields
     if (!req.body.signatureUrl) {
-        return res.render("petition_form", { error: "Sign it" });
+        return res.render("petition_form", {
+            error: "Sign it",
+            scripts: canvasScript,
+        });
     }
 
     addSignature({
         user_id: req.session.user_id,
         // signature: "req.body.signatureUrl",
         signature: req.body.signatureUrl,
-    }).then((result) => {
-        //set cookies
-        return res.redirect("/");
-    });
+    })
+        .then((result) => {
+            //set cookies
+            return res.redirect("/");
+        })
+        .catch((err) => console.log(err));
 });
 
 /************* T H A N K S **************/
@@ -102,17 +123,21 @@ router.get("/signed", (req, res) => {
 
 /********************* S I G N E R S  L I S T ************************** */
 router.get("/petition/signers", (req, res) => {
-    listAllPetitioner().then((result) => {
-        return res.render("petition_signers", { user: result });
-    });
+    if (req.session.user_id) {
+        listAllPetitioner().then((result) => {
+            return res.render("petition_signers", { user: result });
+        });
+    } else res.redirect("/");
 });
 
 /********************* S I G N E R S  L I S T  C I T Y************************** */
 router.get("/petition/signers/:city", (req, res) => {
-    const city = req.params.city;
-    getPetitionerByCity(city).then((result) => {
-        return res.render("city_signers", { user: result, city: city });
-    });
+    if (req.session.user_id) {
+        const city = req.params.city;
+        getPetitionerByCity(city).then((result) => {
+            return res.render("city_signers", { user: result, city: city });
+        });
+    } else res.redirect("/");
 });
 
 /******************** P R O F I L E  ************************* */
@@ -123,29 +148,33 @@ router.get("/profile", (req, res) => {
     } else res.redirect("/");
 });
 
-router.post("/profile", (req, res) => {
-    if (req.body.submit == "skip") {
-        editProfile({
-            user_id: req.session.user_id,
-            age: null,
-            city: "",
-            url: "",
-        }).then(() => res.redirect("/"));
-    } else {
-        const { age, city, url } = req.body;
+router.post(
+    "/profile",
 
-        let safe = checkUrl(url);
-        let realage = age ? age : null;
-        editProfile({
-            user_id: req.session.user_id,
-            age: realage,
-            city,
-            url: safe,
-        })
-            .then(() => res.redirect("/"))
-            .catch((err) => console.log(error));
+    (req, res) => {
+        if (req.body.submit == "skip") {
+            editProfile({
+                user_id: req.session.user_id,
+                age: null,
+                city: "",
+                url: "",
+            }).then(() => res.redirect("/"));
+        } else {
+            const { age, city, url } = req.body;
+
+            let safe = checkUrl(url);
+            let realage = age ? age : null;
+            editProfile({
+                user_id: req.session.user_id,
+                age: realage,
+                city,
+                url: safe,
+            })
+                .then(() => res.redirect("/"))
+                .catch((err) => console.log(error));
+        }
     }
-});
+);
 
 /********************* E D I T F O R M ************************** */
 router.get("/profile/edit", (req, res) => {
@@ -191,6 +220,17 @@ router.post("/signature/delete", (req, res) => {
     let user_id = req.session.user_id;
     deleteSignature(user_id)
         .then(() => res.redirect("/"))
+        .catch((err) => console.log(err));
+});
+
+/********************* D E L E T E  USER ************************** */
+router.post("/delete/user", (req, res) => {
+    let user_id = req.session.user_id;
+    Promise.all([delete1(user_id), delete2(user_id), delete3(user_id)])
+        .then(() => {
+            req.session = null;
+            return res.redirect("/");
+        })
         .catch((err) => console.log(err));
 });
 
