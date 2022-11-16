@@ -2,9 +2,18 @@ const { query } = require("express");
 const spicedPg = require("spiced-pg");
 
 require("dotenv").config();
-const { USER, PASS, DATABASE_URL } = process.env;
 
-const db = spicedPg(DATABASE_URL);
+//const { USER, PASS, DATABASE, DATABASE_URL } = process.env;
+
+//const db = spicedPg(`postgres:${USER}:${PASS}@localhost:5432/${DATABASE}`);
+// const { USER, PASS, DATABASE_URL } = process.env;
+
+// const db = spicedPg(DATABASE_URL);
+
+const db = spicedPg(
+    process.env.DATABASE_URL ||
+        `postgres:${process.env.USER}:${process.env.PASS}@localhost:5432/${process.env.DATABASE}`
+);
 
 module.exports.getPetitioners = () => {
     return db.query("SELECT * FROM users").then((result) => result.rows);
